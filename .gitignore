@@ -20,6 +20,9 @@ pip-log.txt
 .coverage
 .tox
 
+# vim swap files
+*.swp
+
 #Translations
 *.mo
 
