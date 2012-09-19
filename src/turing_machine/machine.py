@@ -3,48 +3,105 @@
 import time
 
 class Machine(object):
-    def __init__(self, input_data, states, input_alphabet, tape_alphabet,
-                 transition_function, start_state, accept_state, reject_state,
-                 movement):
+    """Classe abstrata para uma Máquina de Turing.
 
-        if not input_data:
-            input_data = ' '
+    Attributos:
+        input_data: é o dado de entrada para a máquina.
+        states: é o conjunto de estados da máquina.
+        input_alphabet: é o alfabeto de entrada da máquina.
+        tape_alphabet: é o alfabeto da fita.
+        transition_function: é a função de transição.
+        start_state: é o estado inicial.
+        accept_state: é o estado de aceitação.
+        reject_state: é o estado de rejeição.
+    """
 
-        self.input_data = list(' ' + input_data + ' ')
+    def __init__(self):
+        """Inicia a classe com os tipos vazios."""
+        self.input_data = list()
 
-        self.states = states
-        self.input_alphabet = input_alphabet
-        self.tape_alphabet = tape_alphabet
-        self.transition_function = transition_function
+        self.states = tuple()
+        self.input_alphabet = tuple()
+        self.tape_alphabet = tuple()
+        self.transition_function = dict()
 
-        self.start_state = start_state
-        self.accept_state = accept_state
-        self.reject_state = reject_state
+        self.start_state = ''
+        self.accept_state = ''
+        self.reject_state = ''
 
-        self.movement = movement
+        self.movement = tuple()
 
-        # Checar entradas e lançar exceções (ver definição formal no livro).
+    def run(self, step_delay=1, debug=False):
+        """Inicia a execução da máquina.
 
-    def run(self, step_delay=1):
+        Args:
+            step_delay: é o tempo de impressão das informações no modo debug.
+            debug: ativa o modo de debug da máquina.
+
+        Retorno:
+            O valor boleano True, caso o a máquina aceitou a entrada ou False
+            caso contrário.
+        """
         pass
 
 class SimpleMachine(Machine):
-    def __init__(self, input_data, states, input_alphabet, tape_alphabet,
-                 transition_function, start_state, accept_state, reject_state,
-                 movement):
-        Machine.__init__(self, input_data, states, input_alphabet,
-                         tape_alphabet, transition_function, start_state,
-                         accept_state, reject_state, movement)
+    """Implementação de uma Máquina de Turing simples.
 
-    def run(self, step_delay=1):
+    Essa implementação da Máquina de Turing, usa uma fita preenchida com
+    espaços. A entrada é colocada na fita e o cabeçote é posicionado no símbolo
+    da extrema esquerda. Só foi usado apenas dois tipos de movimento,
+    esquerdo ('left') e direito ('right').
+    """
+
+    def __init__(self):
+        """Chama o construtor da classe base para inicializar os atributos."""
+        Machine.__init__(self)
+
+    def __check_config(self):
+        """Checa a configuração da máquina (ver definição formal no livro)."""
+        pass
+
+    def __movement(self, head_movement, io_head):
+        """Move o cabeçote de leitura e escrita.
+
+        Essa função previne que ocora um IndexError e quando isso ocorrer,
+        ele insere um espaço antes ou depois no dado de entrada.
+
+        Args:
+            head_movement: é o tipo de movimento do cabeçote
+                (esquerdo ou direito).
+            io_head: é a posição do cabeçote.
+
+        Retorno:
+            A nova posição do cabeçote de leitura.
+        """
+        if head_movement == self.movement[0]:
+            io_head -= 1
+            if io_head < 0:
+                self.input_data.insert(0, ' ')
+                io_head = 0
+
+        elif head_movement == self.movement[1]:
+            io_head += 1
+            if io_head >= len(self.input_data):
+                self.input_data.append(' ')
+                io_head = len(self.input_data) - 1
+
+        return io_head
+
+    def run(self, step_delay=1, debug=False):
+        """Ver Machine.run """
+
+        self.__check_config()
+
         step = 1
-        io_head = 1
-        running = True
+        io_head = 0
         current_state = self.start_state
 
-        while running:
-            print 'Step: %d' % step
-            print 'Tape: %s' % self.input_data
+        while True:
+            if debug:
+                print 'Step: %d' % step
+                print 'Tape: %s' % self.input_data
 
             value = self.input_data[io_head]
             if current_state == self.accept_state:
@@ -57,81 +114,87 @@ class SimpleMachine(Machine):
                 new_value = transition[1]
                 head_movement = transition[2]
                 self.input_data[io_head] = new_value
+                if debug:
+                    print 'Current state: %s' % current_state
+                    print 'Read \"%s\"' % value
 
-                print 'Current state: %s' % current_state
-                print 'Read \"%s\"' % value
+                    if current_state != next_state:
+                        print 'Next state: %s' % next_state
 
-                if current_state != next_state:
-                    print 'Next state: %s' % next_state
+                    if value != new_value:
+                        print 'Write \"%s\"' % new_value
 
-                if value != new_value:
-                    print 'Write \"%s\"' % new_value
+                    print 'Moves %s' % head_movement
 
-                if head_movement == self.movement[0]:
-                    print 'Moves left'
-                    io_head -= 1
-                    if io_head < 0:
-                        self.input_data.insert(0, ' ')
-                        io_head = 0
-
-                elif head_movement == self.movement[1]:
-                    print 'Moves right'
-                    io_head += 1
-                    if io_head >= len(self.input_data):
-                        self.input_data.append(' ')
-                        io_head = len(self.input_data) - 1
+                io_head = self.__movement(head_movement, io_head)
 
                 current_state = next_state
 
-            print 'New tape: %s\n' % self.input_data
+            if debug:
+                print 'New tape: %s\n' % self.input_data
+
             step += 1
-            time.sleep(step_delay)
+
+            if debug:
+                time.sleep(step_delay)
 
 
 if __name__ == '__main__':
-    input_data = '0' * 16
-    states = ('q1', 'q2', 'q3', 'q4', 'q5', 'qa', 'qr')
-    input_alphabet = tuple('0')
-    tape_alphabet = tuple(' 0x')
+    number = int(raw_input('Number: '))
 
-    transition_function = {
-        states[0]: {
-            tape_alphabet[0]: [states[6], tape_alphabet[0], 'right'],
-            tape_alphabet[1]: [states[1], tape_alphabet[0], 'right'],
-            tape_alphabet[2]: [states[6], tape_alphabet[2], 'right']
+    m = SimpleMachine()
+
+    m.input_data = list('0' * number)
+    m.states = ('q1', 'q2', 'q3', 'q4', 'q5', 'qa', 'qr')
+    m.input_alphabet = tuple('0')
+    m.tape_alphabet = tuple(' 0x')
+
+    m.movement = ('left', 'right')
+
+    m.transition_function = {
+        m.states[0]: {
+            m.tape_alphabet[0]:
+                [m.states[6], m.tape_alphabet[0], m.movement[1]],
+            m.tape_alphabet[1]:
+                [m.states[1], m.tape_alphabet[0], m.movement[1]],
+            m.tape_alphabet[2]: [m.states[6], m.tape_alphabet[2], m.movement[1]]
         },
-        states[1]: {
-            tape_alphabet[0]: [states[5], tape_alphabet[0], 'right'],
-            tape_alphabet[1]: [states[2], tape_alphabet[2], 'right'],
-            tape_alphabet[2]: [states[1], tape_alphabet[2], 'right']
+        m.states[1]: {
+            m.tape_alphabet[0]:
+                [m.states[5], m.tape_alphabet[0], m.movement[1]],
+            m.tape_alphabet[1]:
+                [m.states[2], m.tape_alphabet[2], m.movement[1]],
+            m.tape_alphabet[2]: [m.states[1], m.tape_alphabet[2], m.movement[1]]
         },
-        states[2]: {
-            tape_alphabet[0]: [states[4], tape_alphabet[0], 'left'],
-            tape_alphabet[1]: [states[3], tape_alphabet[1], 'right'],
-            tape_alphabet[2]: [states[2], tape_alphabet[2], 'right']
+        m.states[2]: {
+            m.tape_alphabet[0]:
+                [m.states[4], m.tape_alphabet[0], m.movement[0]],
+            m.tape_alphabet[1]:
+                [m.states[3], m.tape_alphabet[1], m.movement[1]],
+            m.tape_alphabet[2]: [m.states[2], m.tape_alphabet[2], m.movement[1]]
         },
-        states[3]: {
-            tape_alphabet[0]: [states[6], tape_alphabet[0], 'right'],
-            tape_alphabet[1]: [states[2], tape_alphabet[2], 'right'],
-            tape_alphabet[2]: [states[3], tape_alphabet[2], 'right']
+        m.states[3]: {
+            m.tape_alphabet[0]:
+                [m.states[6], m.tape_alphabet[0], m.movement[1]],
+            m.tape_alphabet[1]:
+                [m.states[2], m.tape_alphabet[2], m.movement[1]],
+            m.tape_alphabet[2]: [m.states[3], m.tape_alphabet[2], m.movement[1]]
         },
-        states[4]: {
-            tape_alphabet[0]: [states[1], tape_alphabet[0], 'right'],
-            tape_alphabet[1]: [states[4], tape_alphabet[1], 'left'],
-            tape_alphabet[2]: [states[4], tape_alphabet[2], 'left']
+        m.states[4]: {
+            m.tape_alphabet[0]:
+                [m.states[1], m.tape_alphabet[0], m.movement[1]],
+            m.tape_alphabet[1]:
+                [m.states[4], m.tape_alphabet[1], m.movement[0]],
+            m.tape_alphabet[2]: [m.states[4], m.tape_alphabet[2], m.movement[0]]
         }
     }
 
-    start_state = states[0]
-    accept_state = states[5]
-    reject_state = states[6]
+    m.start_state = m.states[0]
+    m.accept_state = m.states[5]
+    m.reject_state = m.states[6]
 
-    m = SimpleMachine(input_data, states, input_alphabet, tape_alphabet,
-                      transition_function, start_state, accept_state,
-                      reject_state, ('left', 'right'))
-
-    if m.run(0.2):
-        print 'Accepted!'
+    if m.run(0, True):
+        print '\nAccepted!'
     else:
-        print 'Rejected!'
+        print '\nRejected!'
 
