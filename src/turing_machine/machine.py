@@ -14,10 +14,16 @@ class Machine(object):
         start_state: é o estado inicial.
         accept_state: é o estado de aceitação.
         reject_state: é o estado de rejeição.
+
+        _step: contador de iteração.
+        _io_head: cabeçote de leitura e escrita.
+        _current_state: estado atual.
     """
 
     def __init__(self):
         """Inicia a classe com os tipos vazios."""
+        object.__init__(self)
+
         self.input_data = list()
 
         self.states = tuple()
@@ -31,6 +37,18 @@ class Machine(object):
 
         self.movement = tuple()
 
+        self._step = 1
+        self._io_head = 0
+        self._current_state = self.start_state
+
+    def _config_validator(self):
+        """Checa a configuração da máquina (ver definição formal no livro)."""
+        pass
+
+    def _process(self, debug):
+        """Realiza o processamento da máquina."""
+        pass
+
     def run(self, step_delay=1, debug=False):
         """Inicia a execução da máquina.
 
@@ -42,7 +60,30 @@ class Machine(object):
             O valor boleano True, caso o a máquina aceitou a entrada ou False
             caso contrário.
         """
-        pass
+
+        self._config_validator()
+
+        self._current_state = self.start_state
+
+        return_value = False
+        running = True
+
+        while running:
+            if self._current_state == self.accept_state:
+                return_value = True
+                running = False
+            elif self._current_state == self.reject_state:
+                return_value = False
+                running = False
+            else:
+                self._process(debug)
+
+            if debug:
+                time.sleep(step_delay)
+
+            self._step += 1
+
+        return return_value
 
 class SimpleMachine(Machine):
     """Implementação de uma Máquina de Turing simples.
@@ -57,87 +98,52 @@ class SimpleMachine(Machine):
         """Chama o construtor da classe base para inicializar os atributos."""
         Machine.__init__(self)
 
-    def __check_config(self):
-        """Checa a configuração da máquina (ver definição formal no livro)."""
+    def _config_validator(self):
+        """Veja Machine._config_validator"""
         pass
 
-    def __movement(self, head_movement, io_head):
-        """Move o cabeçote de leitura e escrita.
+    def _process(self, debug):
+        """Ver Machine._process"""
+        if debug:
+            print 'Step: %d' % self._step
+            print 'Tape: %s' % self.input_data
 
-        Essa função previne que ocora um IndexError e quando isso ocorrer,
-        ele insere um espaço antes ou depois no dado de entrada.
+        value = self.input_data[self._io_head]
 
-        Args:
-            head_movement: é o tipo de movimento do cabeçote
-                (esquerdo ou direito).
-            io_head: é a posição do cabeçote.
+        transition = self.transition_function[self._current_state][value]
+        next_state = transition[0]
+        new_value = transition[1]
+        head_movement = transition[2]
+        self.input_data[self._io_head] = new_value
 
-        Retorno:
-            A nova posição do cabeçote de leitura.
-        """
+        if debug:
+            print 'Current state: %s' % self._current_state
+            print 'Read \"%s\"' % value
+
+            if self._current_state != next_state:
+                print 'Next state: %s' % next_state
+
+            if value != new_value:
+                print 'Write \"%s\"' % new_value
+
+            print 'Moves %s' % head_movement
+
         if head_movement == self.movement[0]:
-            io_head -= 1
-            if io_head < 0:
+            self._io_head -= 1
+            if self._io_head < 0:
                 self.input_data.insert(0, ' ')
-                io_head = 0
+                self._io_head = 0
 
         elif head_movement == self.movement[1]:
-            io_head += 1
-            if io_head >= len(self.input_data):
+            self._io_head += 1
+            if self._io_head >= len(self.input_data):
                 self.input_data.append(' ')
-                io_head = len(self.input_data) - 1
+                self._io_head = len(self.input_data) - 1
 
-        return io_head
+        self._current_state = next_state
 
-    def run(self, step_delay=1, debug=False):
-        """Ver Machine.run """
-
-        self.__check_config()
-
-        step = 1
-        io_head = 0
-        current_state = self.start_state
-
-        while True:
-            if debug:
-                print 'Step: %d' % step
-                print 'Tape: %s' % self.input_data
-
-            value = self.input_data[io_head]
-            if current_state == self.accept_state:
-                return True
-            elif current_state == self.reject_state:
-                return False
-            else:
-                transition = self.transition_function[current_state][value]
-                next_state = transition[0]
-                new_value = transition[1]
-                head_movement = transition[2]
-                self.input_data[io_head] = new_value
-                if debug:
-                    print 'Current state: %s' % current_state
-                    print 'Read \"%s\"' % value
-
-                    if current_state != next_state:
-                        print 'Next state: %s' % next_state
-
-                    if value != new_value:
-                        print 'Write \"%s\"' % new_value
-
-                    print 'Moves %s' % head_movement
-
-                io_head = self.__movement(head_movement, io_head)
-
-                current_state = next_state
-
-            if debug:
-                print 'New tape: %s\n' % self.input_data
-
-            step += 1
-
-            if debug:
-                time.sleep(step_delay)
-
+        if debug:
+            print 'New tape: %s\n' % self.input_data
 
 if __name__ == '__main__':
     number = int(raw_input('Number: '))
