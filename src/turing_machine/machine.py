@@ -4,7 +4,8 @@ import time
 
 class Machine(object):
     def __init__(self, input_data, states, input_alphabet, tape_alphabet,
-                 transition_function, start_state, accept_state, reject_state):
+                 transition_function, start_state, accept_state, reject_state,
+                 movement):
 
         if not input_data:
             input_data = ' '
@@ -20,20 +21,20 @@ class Machine(object):
         self.accept_state = accept_state
         self.reject_state = reject_state
 
+        self.movement = movement
+
         # Checar entradas e lançar exceções (ver definição formal no livro).
 
     def run(self, step_delay=1):
         pass
 
 class SimpleMachine(Machine):
-    LEFT = 0
-    RIGHT = 1
-
     def __init__(self, input_data, states, input_alphabet, tape_alphabet,
-                 transition_function, start_state, accept_state, reject_state):
+                 transition_function, start_state, accept_state, reject_state,
+                 movement):
         Machine.__init__(self, input_data, states, input_alphabet,
                          tape_alphabet, transition_function, start_state,
-                         accept_state, reject_state)
+                         accept_state, reject_state, movement)
 
     def run(self, step_delay=1):
         step = 1
@@ -66,14 +67,14 @@ class SimpleMachine(Machine):
                 if value != new_value:
                     print 'Write \"%s\"' % new_value
 
-                if head_movement == self.LEFT:
+                if head_movement == self.movement[0]:
                     print 'Moves left'
                     io_head -= 1
                     if io_head < 0:
                         self.input_data.insert(0, ' ')
                         io_head = 0
 
-                elif head_movement == self.RIGHT:
+                elif head_movement == self.movement[1]:
                     print 'Moves right'
                     io_head += 1
                     if io_head >= len(self.input_data):
@@ -95,46 +96,39 @@ if __name__ == '__main__':
 
     transition_function = {
         states[0]: {
-            tape_alphabet[0]:
-                [states[6], tape_alphabet[0], SimpleMachine.RIGHT],
-            tape_alphabet[1]:
-                [states[1], tape_alphabet[0], SimpleMachine.RIGHT],
-            tape_alphabet[2]: [states[6], tape_alphabet[2], SimpleMachine.RIGHT]
+            tape_alphabet[0]: [states[6], tape_alphabet[0], 'right'],
+            tape_alphabet[1]: [states[1], tape_alphabet[0], 'right'],
+            tape_alphabet[2]: [states[6], tape_alphabet[2], 'right']
         },
         states[1]: {
-            tape_alphabet[0]:
-                [states[5], tape_alphabet[0], SimpleMachine.RIGHT],
-            tape_alphabet[1]:
-                [states[2], tape_alphabet[2], SimpleMachine.RIGHT],
-            tape_alphabet[2]: [states[1], tape_alphabet[2], SimpleMachine.RIGHT]
+            tape_alphabet[0]: [states[5], tape_alphabet[0], 'right'],
+            tape_alphabet[1]: [states[2], tape_alphabet[2], 'right'],
+            tape_alphabet[2]: [states[1], tape_alphabet[2], 'right']
         },
         states[2]: {
-            tape_alphabet[0]: [states[4], tape_alphabet[0], SimpleMachine.LEFT],
-            tape_alphabet[1]:
-                [states[3], tape_alphabet[1], SimpleMachine.RIGHT],
-            tape_alphabet[2]: [states[2], tape_alphabet[2], SimpleMachine.RIGHT]
+            tape_alphabet[0]: [states[4], tape_alphabet[0], 'left'],
+            tape_alphabet[1]: [states[3], tape_alphabet[1], 'right'],
+            tape_alphabet[2]: [states[2], tape_alphabet[2], 'right']
         },
         states[3]: {
-            tape_alphabet[0]:
-                [states[6], tape_alphabet[0], SimpleMachine.RIGHT],
-            tape_alphabet[1]:
-                [states[2], tape_alphabet[2], SimpleMachine.RIGHT],
-            tape_alphabet[2]: [states[3], tape_alphabet[2], SimpleMachine.RIGHT]
+            tape_alphabet[0]: [states[6], tape_alphabet[0], 'right'],
+            tape_alphabet[1]: [states[2], tape_alphabet[2], 'right'],
+            tape_alphabet[2]: [states[3], tape_alphabet[2], 'right']
         },
         states[4]: {
-            tape_alphabet[0]:
-                [states[1], tape_alphabet[0], SimpleMachine.RIGHT],
-            tape_alphabet[1]: [states[4], tape_alphabet[1], SimpleMachine.LEFT],
-            tape_alphabet[2]: [states[4], tape_alphabet[2], SimpleMachine.LEFT]
+            tape_alphabet[0]: [states[1], tape_alphabet[0], 'right'],
+            tape_alphabet[1]: [states[4], tape_alphabet[1], 'left'],
+            tape_alphabet[2]: [states[4], tape_alphabet[2], 'left']
         }
     }
+
     start_state = states[0]
     accept_state = states[5]
     reject_state = states[6]
 
     m = SimpleMachine(input_data, states, input_alphabet, tape_alphabet,
                       transition_function, start_state, accept_state,
-                      reject_state)
+                      reject_state, ('left', 'right'))
 
     if m.run(0.2):
         print 'Accepted!'
