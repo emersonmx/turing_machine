@@ -1,6 +1,7 @@
 # -*- coding: utf8 -*-
 
 import time
+import json
 
 class Machine(object):
     """Classe abstrata para uma Máquina de Turing.
@@ -35,7 +36,7 @@ class Machine(object):
         self.accept_state = ''
         self.reject_state = ''
 
-        self.movement = tuple()
+        self.movements = tuple()
 
         self._step = 1
         self._io_head = 0
@@ -48,6 +49,42 @@ class Machine(object):
     def _process(self, debug):
         """Realiza o processamento da máquina."""
         pass
+
+    def load(self, configuration_file='machine.json'):
+        machine_data = ''
+
+        data_file = open(configuration_file, 'r')
+        for line in data_file.readlines():
+            machine_data += line
+
+        data_file.close()
+
+        data_json = json.loads(machine_data)
+
+        self.states = data_json['states']
+        self.input_alphabet = data_json['input_alphabet']
+        self.tape_alphabet = data_json['tape_alphabet']
+        self.transition_function = data_json['transition_function']
+        self.start_state = data_json['start_state']
+        self.accept_state = data_json['accept_state']
+        self.reject_state = data_json['reject_state']
+        self.movements = data_json['movements']
+
+    def save(self, configuration_file='machine.json'):
+        data_json = {
+            "states": self.states,
+            "input_alphabet": self.input_alphabet,
+            "tape_alphabet": self.tape_alphabet,
+            "transition_function": self.transition_function,
+            "start_state": self.start_state,
+            "accept_state": self.accept_state,
+            "reject_state": self.reject_state,
+            "movements": self.movements
+        }
+
+        data_file = open(configuration_file, 'w')
+        data_file.write(json.dumps(data_json))
+        data_file.close()
 
     def run(self, step_delay=1, debug=False):
         """Inicia a execução da máquina.
@@ -128,13 +165,13 @@ class SimpleMachine(Machine):
 
             print 'Moves %s' % head_movement
 
-        if head_movement == self.movement[0]:
+        if head_movement == self.movements[0]:
             self._io_head -= 1
             if self._io_head < 0:
                 self.input_data.insert(0, ' ')
                 self._io_head = 0
 
-        elif head_movement == self.movement[1]:
+        elif head_movement == self.movements[1]:
             self._io_head += 1
             if self._io_head >= len(self.input_data):
                 self.input_data.append(' ')
@@ -151,53 +188,8 @@ if __name__ == '__main__':
     m = SimpleMachine()
 
     m.input_data = list('0' * number)
-    m.states = ('q1', 'q2', 'q3', 'q4', 'q5', 'qa', 'qr')
-    m.input_alphabet = tuple('0')
-    m.tape_alphabet = tuple(' 0x')
 
-    m.movement = ('left', 'right')
-
-    m.transition_function = {
-        m.states[0]: {
-            m.tape_alphabet[0]:
-                [m.states[6], m.tape_alphabet[0], m.movement[1]],
-            m.tape_alphabet[1]:
-                [m.states[1], m.tape_alphabet[0], m.movement[1]],
-            m.tape_alphabet[2]: [m.states[6], m.tape_alphabet[2], m.movement[1]]
-        },
-        m.states[1]: {
-            m.tape_alphabet[0]:
-                [m.states[5], m.tape_alphabet[0], m.movement[1]],
-            m.tape_alphabet[1]:
-                [m.states[2], m.tape_alphabet[2], m.movement[1]],
-            m.tape_alphabet[2]: [m.states[1], m.tape_alphabet[2], m.movement[1]]
-        },
-        m.states[2]: {
-            m.tape_alphabet[0]:
-                [m.states[4], m.tape_alphabet[0], m.movement[0]],
-            m.tape_alphabet[1]:
-                [m.states[3], m.tape_alphabet[1], m.movement[1]],
-            m.tape_alphabet[2]: [m.states[2], m.tape_alphabet[2], m.movement[1]]
-        },
-        m.states[3]: {
-            m.tape_alphabet[0]:
-                [m.states[6], m.tape_alphabet[0], m.movement[1]],
-            m.tape_alphabet[1]:
-                [m.states[2], m.tape_alphabet[2], m.movement[1]],
-            m.tape_alphabet[2]: [m.states[3], m.tape_alphabet[2], m.movement[1]]
-        },
-        m.states[4]: {
-            m.tape_alphabet[0]:
-                [m.states[1], m.tape_alphabet[0], m.movement[1]],
-            m.tape_alphabet[1]:
-                [m.states[4], m.tape_alphabet[1], m.movement[0]],
-            m.tape_alphabet[2]: [m.states[4], m.tape_alphabet[2], m.movement[0]]
-        }
-    }
-
-    m.start_state = m.states[0]
-    m.accept_state = m.states[5]
-    m.reject_state = m.states[6]
+    m.load()
 
     if m.run(0, True):
         print '\nAccepted!'

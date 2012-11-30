@@ -1,0 +1,36 @@
+{
+    "states": ["q1", "q2", "q3", "q4", "q5", "qa", "qr"],
+    "input_alphabet": ["0"],
+    "start_state": "q1",
+    "transition_function": {
+        "q1": {
+            " ": ["qr", " ", "right"],
+            "x": ["qr", "x", "right"],
+            "0": ["q2", " ", "right"]
+        },
+        "q3": {
+            " ": ["q5", " ", "left"],
+            "x": ["q3", "x", "right"],
+            "0": ["q4", "0", "right"]
+        },
+        "q2": {
+            " ": ["qa", " ", "right"],
+            "x": ["q2", "x", "right"],
+            "0": ["q3", "x", "right"]
+        },
+        "q5": {
+            " ": ["q2", " ", "right"],
+            "x": ["q5", "x", "left"],
+            "0": ["q5", "0", "left"]
+        },
+        "q4": {
+            " ": ["qr", " ", "right"],
+            "x": ["q4", "x", "right"],
+            "0": ["q3", "x", "right"]
+        }
+    },
+    "movements": ["left", "right"],
+    "tape_alphabet": [" ", "0", "x"],
+    "accept_state": "qa",
+    "reject_state": "qr"
+}
