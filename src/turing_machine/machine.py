@@ -1,5 +1,6 @@
 # -*- coding: utf8 -*-
 
+import sys
 import time
 import json
 
@@ -183,13 +184,17 @@ class SimpleMachine(Machine):
             print 'New tape: %s\n' % self.input_data
 
 if __name__ == '__main__':
+    if len(sys.argv) != 2:
+        print 'Usage: %s <machine_configuration>' % sys.argv[0]
+        sys.exit(0)
+
     number = int(raw_input('Number: '))
 
     m = SimpleMachine()
 
     m.input_data = list('0' * number)
 
-    m.load()
+    m.load(sys.argv[1])
 
     if m.run(0, True):
         print '\nAccepted!'
