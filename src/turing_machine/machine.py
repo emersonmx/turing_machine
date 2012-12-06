@@ -184,15 +184,15 @@ class SimpleMachine(Machine):
             print 'New tape: %s\n' % self.input_data
 
 if __name__ == '__main__':
-    if len(sys.argv) != 2:
-        print 'Usage: %s <machine_configuration>' % sys.argv[0]
+    if len(sys.argv) != 3:
+        print 'Usage: %s <machine_configuration> <input_data>' % sys.argv[0]
         sys.exit(0)
 
-    number = int(raw_input('Number: '))
+    input_data = sys.argv[2]
 
     m = SimpleMachine()
 
-    m.input_data = list('0' * number)
+    m.input_data = list(input_data)
 
     m.load(sys.argv[1])
 
